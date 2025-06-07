@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password AI - Generator & Security Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .tab.active {
+            background: white;
+            color: #4facfe;
+            border-bottom: 3px solid #4facfe;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .password-display {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            word-break: break-all;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .strength-meter {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .strength-fill {
+            height: 100%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .strength-weak { background: #dc3545; }
+        .strength-fair { background: #fd7e14; }
+        .strength-good { background: #ffc107; }
+        .strength-strong { background: #28a745; }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .analysis-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .analysis-item h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .analysis-item p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .suggestions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .suggestions h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .suggestions ul {
+            color: #856404;
+            padding-left: 20px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .slider {
+            flex: 1;
+        }
+
+        .slider-value {
+            min-width: 40px;
+            text-align: center;
+            font-weight: bold;
+            color: #4facfe;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <h1>🔐 Password AI</h1>
+            <p>Generate secure passwords and analyze password strength with AI-powered insights</p>
+        </div>
+
+        <!-- Tabs Section -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('generator')">Password Generator</div>
+            <div class="tab" onclick="switchTab('analyzer')">Security Analyzer</div>
+        </div>
+
+        <!-- Content Section -->
+        <div class="content">
+            <!-- Password Generator Section -->
+            <div id="generator" class="section active">
+                <h2>Generate Secure Password</h2>
+                
+                <div class="form-group">
+                    <label>Password Length</label>
+                    <div class="slider-container">
+                        <input type="range" id="length" class="slider" min="8" max="128" value="16" oninput="updateLength()">
+                        <span class="slider-value" id="lengthValue">16</span>
+                    </div>
+                </div>
+
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="uppercase" checked>
+                        <label for="uppercase">Uppercase Letters (A-Z)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="lowercase" checked>
+                        <label for="lowercase">Lowercase Letters (a-z)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="numbers" checked>
+                        <label for="numbers">Numbers (0-9)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="symbols" checked>
+                        <label for="symbols">Symbols (!@#$%^&*)</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Exclude Similar Characters</label>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="excludeSimilar">
+                        <label for="excludeSimilar">Exclude 0, O, l, I, 1 (reduces confusion)</label>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="generatePassword()">Generate Password</button>
+
+                <div id="generatorResult" class="result-box" style="display: none;">
+                    <button class="copy-btn" onclick="copyToClipboard('generatedPassword')">Copy</button>
+                    <div id="generatedPassword" class="password-display"></div>
+                    <div class="strength-meter">
+                        <div id="generatedStrengthFill" class="strength-fill"></div>
+                    </div>
+                    <div id="generatedAnalysis"></div>
+                </div>
+            </div>
+
+            <!-- Password Analyzer Section -->
+            <div id="analyzer" class="section">
+                <h2>Analyze Password Security</h2>
+                
+                <div class="form-group">
+                    <label for="passwordInput">Enter Password to Analyze</label>
+                    <input type="password" id="passwordInput" placeholder="Type your password here..." oninput="analyzePassword()">
+                    <div class="checkbox-item" style="margin-top: 10px;">
+                        <input type="checkbox" id="showPassword" onchange="togglePasswordVisibility()">
+                        <label for="showPassword">Show password</label>
+                    </div>
+                </div>
+
+                <div id="analysisResult" class="result-box" style="display: none;">
+                    <div class="strength-meter">
+                        <div id="strengthFill" class="strength-fill"></div>
+                    </div>
+                    <div id="strengthText" style="font-weight: bold; margin: 10px 0;"></div>
+                    
+                    <div class="analysis-grid" id="analysisGrid"></div>
+                    
+                    <div id="suggestions" class="suggestions" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'generator';
+
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab:nth-child(${tab === 'generator' ? '1' : '2'})`).classList.add('active');
+            
+            // Update sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            
+            currentTab = tab;
+        }
+
+        function updateLength() {
+            const length = document.getElementById('length').value;
+            document.getElementById('lengthValue').textContent = length;
+        }
+
+        function generatePassword() {
+            const length = parseInt(document.getElementById('length').value);
+            const uppercase = document.getElementById('uppercase').checked;
+            const lowercase = document.getElementById('lowercase').checked;
+            const numbers = document.getElementById('numbers').checked;
+            const symbols = document.getElementById('symbols').checked;
+            const excludeSimilar = document.getElementById('excludeSimilar').checked;
+
+            let charset = '';
+            if (uppercase) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            if (lowercase) charset += 'abcdefghijklmnopqrstuvwxyz';
+            if (numbers) charset += '0123456789';
+            if (symbols) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+            if (excludeSimilar) {
+                charset = charset.replace(/[0Ol1I]/g, '');
+            }
+
+            if (!charset) {
+                alert('Please select at least one character type!');
+                return;
+            }
+
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                password += charset.charAt(Math.floor(Math.random() * charset.length));
+            }
+
+            document.getElementById('generatedPassword').textContent = password;
+            document.getElementById('generatorResult').style.display = 'block';
+            
+            // Analyze the generated password
+            const analysis = getPasswordAnalysis(password);
+            updateStrengthDisplay('generatedStrengthFill', analysis.score);
+            document.getElementById('generatedAnalysis').innerHTML = `
+                <strong>Strength: ${analysis.strength}</strong><br>
+                <small>Estimated time to crack: ${analysis.crackTime}</small>
+            `;
+        }
+
+        function analyzePassword() {
+            const password = document.getElementById('passwordInput').value;
+            const resultDiv = document.getElementById('analysisResult');
+            
+            if (!password) {
+                resultDiv.style.display = 'none';
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            const analysis = getPasswordAnalysis(password);
+            
+            // Update strength meter
+            updateStrengthDisplay('strengthFill', analysis.score);
+            document.getElementById('strengthText').textContent = `Strength: ${analysis.strength} (${analysis.score}/100)`;
+            
+            // Update analysis grid
+            const grid = document.getElementById('analysisGrid');
+            grid.innerHTML = `
+                <div class="analysis-item">
+                    <h4>Length</h4>
+                    <p>${password.length} characters</p>
+                </div>
+                <div class="analysis-item">
+                    <h4>Character Types</h4>
+                    <p>${analysis.charTypes.join(', ')}</p>
+                </div>
+                <div class="analysis-item">
+                    <h4>Entropy</h4>
+                    <p>${analysis.entropy} bits</p>
+                </div>
+                <div class="analysis-item">
+                    <h4>Crack Time</h4>
+                    <p>${analysis.crackTime}</p>
+                </div>
+            `;
+
+            // Show suggestions if needed
+            const suggestionsDiv = document.getElementById('suggestions');
+            if (analysis.suggestions.length > 0) {
+                suggestionsDiv.style.display = 'block';
+                suggestionsDiv.innerHTML = `
+                    <h4>💡 Suggestions for Improvement:</h4>
+                    <ul>${analysis.suggestions.map(s => `<li>${s}</li>`).join('')}</ul>
+                `;
+            } else {
+                suggestionsDiv.style.display = 'none';
+            }
+        }
+
+        function getPasswordAnalysis(password) {
+            let score = 0;
+            let charTypes = [];
+            let suggestions = [];
+
+            // Character type analysis
+            const hasLower = /[a-z]/.test(password);
+            const hasUpper = /[A-Z]/.test(password);
+            const hasNumbers = /[0-9]/.test(password);
+            const hasSymbols = /[^a-zA-Z0-9]/.test(password);
+
+            if (hasLower) { charTypes.push('Lowercase'); score += 10; }
+            if (hasUpper) { charTypes.push('Uppercase'); score += 10; }
+            if (hasNumbers) { charTypes.push('Numbers'); score += 10; }
+            if (hasSymbols) { charTypes.push('Symbols'); score += 15; }
+
+            // Length scoring
+            if (password.length >= 8) score += 10;
+            if (password.length >= 12) score += 10;
+            if (password.length >= 16) score += 15;
+            if (password.length >= 20) score += 10;
+
+            // Pattern detection
+            if (!/(.)\1{2,}/.test(password)) score += 10; // No repeated characters
+            if (!/123|abc|qwe|password|admin/i.test(password)) score += 10; // No common patterns
+
+            // Calculate entropy
+            let charset = 0;
+            if (hasLower) charset += 26;
+            if (hasUpper) charset += 26;
+            if (hasNumbers) charset += 10;
+            if (hasSymbols) charset += 32;
+
+            const entropy = Math.log2(Math.pow(charset, password.length));
+
+            // Crack time estimation
+            const combinations = Math.pow(charset, password.length);
+            const secondsToCrack = combinations / (2 * 1000000000000); // Assuming 1 trillion guesses per second
+            let crackTime = '';
+
+            if (secondsToCrack < 1) crackTime = 'Instantly';
+            else if (secondsToCrack < 60) crackTime = 'Seconds';
+            else if (secondsToCrack < 3600) crackTime = 'Minutes';
+            else if (secondsToCrack < 86400) crackTime = 'Hours';
+            else if (secondsToCrack < 31536000) crackTime = 'Days to Months';
+            else if (secondsToCrack < 31536000000) crackTime = 'Years to Decades';
+            else crackTime = 'Centuries or more';
+
+            // Generate suggestions
+            if (password.length < 12) suggestions.push('Use at least 12 characters');
+            if (!hasUpper) suggestions.push('Add uppercase letters');
+            if (!hasLower) suggestions.push('Add lowercase letters');
+            if (!hasNumbers) suggestions.push('Add numbers');
+            if (!hasSymbols) suggestions.push('Add special symbols');
+            if (/(.)\1{2,}/.test(password)) suggestions.push('Avoid repeating characters');
+            if (/123|abc|qwe|password|admin/i.test(password)) suggestions.push('Avoid common patterns and words');
+
+            // Determine strength
+            let strength = '';
+            if (score < 30) strength = 'Very Weak';
+            else if (score < 50) strength = 'Weak';
+            else if (score < 70) strength = 'Fair';
+            else if (score < 85) strength = 'Good';
+            else strength = 'Very Strong';
+
+            return {
+                score: Math.min(score, 100),
+                strength,
+                charTypes,
+                entropy: Math.round(entropy),
+                crackTime,
+                suggestions
+            };
+        }
+
+        function updateStrengthDisplay(elementId, score) {
+            const fill = document.getElementById(elementId);
+            fill.style.width = score + '%';
+            
+            if (score < 30) fill.className = 'strength-fill strength-weak';
+            else if (score < 50) fill.className = 'strength-fill strength-fair';
+            else if (score < 70) fill.className = 'strength-fill strength-good';
+            else fill.className = 'strength-fill strength-strong';
+        }
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById('passwordInput');
+            const checkbox = document.getElementById('showPassword');
+            input.type = checkbox.checked ? 'text' : 'password';
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = '#28a745';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
