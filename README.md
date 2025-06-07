@@ -49,7 +49,7 @@ The JavaScript code is responsible for the interactive features:
 
 ## Live Demo
 
-You can access the live version of the application here: [Password AI Live Demo](https://passaitool-4e9gpwqzu-rahulbedjavalges-projects.vercel.app/)
+You can access the live version of the application here: [Password AI Live Demo](https://passaitool.vercel.app/)
 
 ## Future Enhancements
 - Add server-side validation for password analysis.
